@@ -3,52 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحدي سرعة التفاعل</title>
+    <title>لعبة الراكض والقفز</title>
     <style>
-        body { background: #111; color: #fff; font-family: sans-serif; text-align: center; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        #target { width: 100px; height: 100px; background: #ff4d4d; border-radius: 50%; display: none; cursor: pointer; position: absolute; }
-        .score { font-size: 1.5rem; margin-top: 20px; color: #00ff00; }
-        .btn { background: #00ff00; color: #000; border: none; padding: 15px 30px; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333;
+            font-family: 'Arial', sans-serif;
+            flex-direction: column;
+        }
+        canvas {
+            border: 3px solid #555;
+            background-color: #87CEEB; /* لون السماء */
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        #instructions {
+            color: white;
+            margin-top: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-    <h1>لعبة سرعة التفاعل</h1>
-    <p>انتظر ظهور الدائرة الحمراء واضغط عليها بأسرع ما يمكن!</p>
-    <button class="btn" onclick="startGame()">ابدأ اللعب</button>
-    <div class="score" id="result"></div>
-    <div id="target" onclick="hitTarget()"></div>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div id="instructions">
+        <p>التحكم: <b>السهم للأعلى أو المسافة</b> للقفز | <b>السهم للأسفل</b> للانحناء</p>
+        <h2 id="gameOverMsg" style="display: none; color: red;">انتهت اللعبة! اضغط F5 لإعادة المحاولة</h2>
+    </div>
 
     <script>
-        let startTime;
-        const target = document.getElementById('target');
-        const result = document.getElementById('result');
+        // --- إعدادات اللعبة الأساسية ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameRunning = true;
+        let score = 0;
+        let gameSpeed = 5;
+        const groundHeight = 50; // ارتفاع الأرضية من الأسفل
 
-        function startGame() {
-            result.innerText = "انتظر...";
-            target.style.display = "none";
-            // وقت عشوائي للظهور بين ثانية و 5 ثواني
-            let delay = Math.random() * 4000 + 1000;
-            setTimeout(showTarget, delay);
+        // --- قسم تحميل الرسومات (الصور) ---
+        // ملاحظة: استبدل أسماء الملفات (مثلاً 'player_run.png') بصورك الخاصة.
+        // تأكد من أن صورك موجودة في نفس المجلد مع ملف الـ HTML.
+        
+        const playerRunImg = new Image();
+        // playerRunImg.src = 'player_run.png'; // <-- ضع مسار صورة الركض هنا
+
+        const playerDuckImg = new Image();
+        // playerDuckImg.src = 'player_duck.png'; // <-- ضع مسار صورة الانحناء هنا
+
+        const obstacleLowImg = new Image();
+        // obstacleLowImg.src = 'cactus.png'; // <-- ضع مسار صورة العقبة الأرضية هنا
+
+        const obstacleHighImg = new Image();
+        // obstacleHighImg.src = 'bird.png'; // <-- ضع مسار صورة العقبة الجوية هنا
+
+
+        // --- كائن اللاعب (The Player) ---
+        const player = {
+            x: 50,
+            y: 0, // سيتم تحديده بناءً على الأرضية
+            width: 40,  // عرض اللاعب العادي
+            height: 60, // ارتفاع اللاعب العادي
+            duckHeight: 30, // ارتفاع اللاعب عند الانحناء
+            color: '#FF4500', // لون برتقالي (نائب عن الصورة)
+            velocityY: 0,
+            jumpPower: -15,
+            gravity: 0.8,
+            isJumping: false,
+            isDucking: false,
+            originalHeight: 60, // للاحتفاظ بالارتفاع الأصلي
+
+            draw: function() {
+                // هذه الدالة تحدد ماذا نرسم بناءً على حالة اللاعب (يركض، يقفز، ينحني)
+
+                if (this.isDucking) {
+                    // --- رسم حالة الانحناء ---
+                    // إذا كانت لديك صورة للانحناء، قم بإلغاء تعليق السطر التالي:
+                    // ctx.drawImage(playerDuckImg, this.x, this.y, this.width, this.height);
+                    
+                    // (عنصر نائب: مربع أزرق قصير للانحناء)
+                    ctx.fillStyle = 'blue';
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+
+                } else {
+                     // --- رسم حالة الركض/القفز ---
+                    // إذا كانت لديك صورة للركض، قم بإلغاء تعليق السطر التالي:
+                    // ctx.drawImage(playerRunImg, this.x, this.y, this.width, this.height);
+
+                    // (عنصر نائب: مربع برتقالي عادي)
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
+            },
+
+            update: function() {
+                // تطبيق الجاذبية
+                this.velocityY += this.gravity;
+                this.y += this.velocityY;
+
+                // التأكد من عدم السقوط تحت الأرض
+                let currentGroundY = canvas.height - groundHeight - this.height;
+                if (this.y > currentGroundY) {
+                    this.y = currentGroundY;
+                    this.velocityY = 0;
+                    this.isJumping = false;
+                }
+
+                this.draw();
+            },
+
+            jump: function() {
+                if (!this.isJumping && !this.isDucking) {
+                    this.velocityY = this.jumpPower;
+                    this.isJumping = true;
+                }
+            },
+
+            duck: function(isDown) {
+                if (isDown && !this.isJumping) {
+                    if (!this.isDucking) {
+                        this.isDucking = true;
+                        this.height = this.duckHeight; // تقليل الارتفاع
+                        this.y += (this.originalHeight - this.duckHeight); // تعديل الموقع للأسفل فوراً
+                    }
+                } else {
+                     if (this.isDucking) {
+                        this.isDucking = false;
+                        this.y -= (this.originalHeight - this.duckHeight); // استعادة الموقع للأعلى
+                        this.height = this.originalHeight; // استعادة الارتفاع الأصلي
+                     }
+                }
+            }
+        };
+
+        // ضبط موقع اللاعب الابتدائي على الأرض
+        player.y = canvas.height - groundHeight - player.height;
+
+        // --- إدارة العقبات ---
+        let obstacles = [];
+        let spawnTimer = 0;
+
+        function spawnObstacle() {
+            spawnTimer++;
+            // إنشاء عقبة كل 60 إلى 150 إطار تقريباً (بشكل عشوائي)
+            if (spawnTimer > Math.random() * 90 + 60) {
+                spawnTimer = 0;
+
+                // تحديد نوع العقبة عشوائياً: 0 = أرضية، 1 = جوية
+                let type = Math.floor(Math.random() * 2); 
+                
+                let obstacle = {
+                    x: canvas.width,
+                    y: 0,
+                    width: type === 0 ? 30 : 50, // عرض مختلف حسب النوع
+                    height: type === 0 ? 50 : 30, // ارتفاع مختلف حسب النوع
+                    type: type === 0 ? 'low' : 'high',
+                    color: type === 0 ? 'green' : 'red'
+                };
+
+                if (obstacle.type === 'low') {
+                    // عقبة أرضية (مثل صبار)
+                    obstacle.y = canvas.height - groundHeight - obstacle.height;
+                } else {
+                    // عقبة جوية (مثل طائر) - يجب الانحناء تحتها
+                    obstacle.y = canvas.height - groundHeight - player.originalHeight - 10; // فوق رأس اللاعب بقليل
+                }
+                
+                obstacles.push(obstacle);
+            }
         }
 
-        function showTarget() {
-            // تحديد مكان عشوائي في الشاشة
-            let x = Math.random() * (window.innerWidth - 100);
-            let y = Math.random() * (window.innerHeight - 100);
-            
-            target.style.left = x + "px";
-            target.style.top = y + "px";
-            target.style.display = "block";
-            startTime = Date.now();
-        }
+        function handleObstacles() {
+            for (let i = 0; i < obstacles.length; i++) {
+                let obs = obstacles[i];
+                obs.x -= gameSpeed; // تحريك العقبة لليسار
 
-        function hitTarget() {
-            let endTime = Date.now();
-            let reactionTime = (endTime - startTime) / 1000;
-            target.style.display = "none";
-            result.innerText = "سرعة تفاعلك: " + reactionTime + " ثانية!";
-        }
-    </script>
-</body>
-</html>
+                // رسم العقبة
+                if (obs.type === 'low') {
+                    // إذا كانت لديك صورة للعقبة الأرضية:
+                    // ctx.drawImage(obstacleLowImg, obs.x, obs.y, obs.width, obs.height);
+                    ctx.fillStyle = obs.color; // أخضر
+                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                } else {
+                    // إذا كانت لديك صورة للعقبة الجوية:
+                    // ctx.drawImage(obstacleHighImg, obs.x, obs.y, obs.width, obs.height);
+                    ctx.fillStyle = obs.color; // أحمر
+                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                }
+
+                // كشف التصادم (Collision Detection)
+                // معادلة بسيطة للتحقق من تداخل المربعات
+                if (
+                    player.x < obs.x + obs.width &&
+                    player.x + player.width > obs.x &&
+                    player.y < obs.y + obs.height &&
+                    player.y + player.height > obs.y
+                ) {
+                    gameOver();
+                }
+
+                // إزالة العقبات التي خرجت من الشاشة وزيادة النقاط
+                if (obs.x + obs.width < 0) {
+                    obstacles.splice(i, 1);
