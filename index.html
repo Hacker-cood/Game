@@ -2,209 +2,47 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الراكض والقفز</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لعبة الراكض المحترف</title>
     <style>
-        body {
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #333;
-            font-family: 'Arial', sans-serif;
-            flex-direction: column;
-        }
-        canvas {
-            border: 3px solid #555;
-            background-color: #87CEEB; /* لون السماء */
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        #instructions {
-            color: white;
-            margin-top: 10px;
-            text-align: center;
-        }
+        body { margin: 0; background: #222; overflow: hidden; font-family: sans-serif; touch-action: none; }
+        canvas { display: block; background: #87CEEB; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .ui { position: fixed; top: 10px; width: 100%; text-align: center; color: #fff; pointer-events: none; }
+        #controls { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: space-around; }
+        .btn { width: 80px; height: 80px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; color: #fff; font-weight: bold; font-size: 1.2rem; pointer-events: auto; display: flex; align-items: center; justify-content: center; user-select: none; }
     </style>
 </head>
 <body>
 
-    <canvas id="gameCanvas" width="800" height="400"></canvas>
-    <div id="instructions">
-        <p>التحكم: <b>السهم للأعلى أو المسافة</b> للقفز | <b>السهم للأسفل</b> للانحناء</p>
-        <h2 id="gameOverMsg" style="display: none; color: red;">انتهت اللعبة! اضغط F5 لإعادة المحاولة</h2>
+    <div class="ui">
+        <div id="score">النقاط: 0</div>
+        <div id="msg" style="font-size: 2rem; color: red; display: none;">انتهت اللعبة!</div>
+    </div>
+
+    <canvas id="game"></canvas>
+
+    <div id="controls">
+        <div class="btn" id="jumpBtn">قفز</div>
+        <div class="btn" id="duckBtn">نزول</div>
     </div>
 
     <script>
-        // --- إعدادات اللعبة الأساسية ---
-        const canvas = document.getElementById('gameCanvas');
+        const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
-        let gameRunning = true;
+        const scoreEl = document.getElementById('score');
+        const msgEl = document.getElementById('msg');
+
+        // ضبط المقاسات حسب الشاشة
+        canvas.width = window.innerWidth > 800 ? 800 : window.innerWidth;
+        canvas.height = 400;
+
+        let gameActive = true;
         let score = 0;
-        let gameSpeed = 5;
-        const groundHeight = 50; // ارتفاع الأرضية من الأسفل
+        let speed = 6;
+        let frame = 0;
 
-        // --- قسم تحميل الرسومات (الصور) ---
-        // ملاحظة: استبدل أسماء الملفات (مثلاً 'player_run.png') بصورك الخاصة.
-        // تأكد من أن صورك موجودة في نفس المجلد مع ملف الـ HTML.
-        
-        const playerRunImg = new Image();
-        // playerRunImg.src = 'player_run.png'; // <-- ضع مسار صورة الركض هنا
-
-        const playerDuckImg = new Image();
-        // playerDuckImg.src = 'player_duck.png'; // <-- ضع مسار صورة الانحناء هنا
-
-        const obstacleLowImg = new Image();
-        // obstacleLowImg.src = 'cactus.png'; // <-- ضع مسار صورة العقبة الأرضية هنا
-
-        const obstacleHighImg = new Image();
-        // obstacleHighImg.src = 'bird.png'; // <-- ضع مسار صورة العقبة الجوية هنا
-
-
-        // --- كائن اللاعب (The Player) ---
         const player = {
-            x: 50,
-            y: 0, // سيتم تحديده بناءً على الأرضية
-            width: 40,  // عرض اللاعب العادي
-            height: 60, // ارتفاع اللاعب العادي
-            duckHeight: 30, // ارتفاع اللاعب عند الانحناء
-            color: '#FF4500', // لون برتقالي (نائب عن الصورة)
-            velocityY: 0,
-            jumpPower: -15,
-            gravity: 0.8,
-            isJumping: false,
-            isDucking: false,
-            originalHeight: 60, // للاحتفاظ بالارتفاع الأصلي
-
-            draw: function() {
-                // هذه الدالة تحدد ماذا نرسم بناءً على حالة اللاعب (يركض، يقفز، ينحني)
-
-                if (this.isDucking) {
-                    // --- رسم حالة الانحناء ---
-                    // إذا كانت لديك صورة للانحناء، قم بإلغاء تعليق السطر التالي:
-                    // ctx.drawImage(playerDuckImg, this.x, this.y, this.width, this.height);
-                    
-                    // (عنصر نائب: مربع أزرق قصير للانحناء)
-                    ctx.fillStyle = 'blue';
-                    ctx.fillRect(this.x, this.y, this.width, this.height);
-
-                } else {
-                     // --- رسم حالة الركض/القفز ---
-                    // إذا كانت لديك صورة للركض، قم بإلغاء تعليق السطر التالي:
-                    // ctx.drawImage(playerRunImg, this.x, this.y, this.width, this.height);
-
-                    // (عنصر نائب: مربع برتقالي عادي)
-                    ctx.fillStyle = this.color;
-                    ctx.fillRect(this.x, this.y, this.width, this.height);
-                }
-            },
-
-            update: function() {
-                // تطبيق الجاذبية
-                this.velocityY += this.gravity;
-                this.y += this.velocityY;
-
-                // التأكد من عدم السقوط تحت الأرض
-                let currentGroundY = canvas.height - groundHeight - this.height;
-                if (this.y > currentGroundY) {
-                    this.y = currentGroundY;
-                    this.velocityY = 0;
-                    this.isJumping = false;
-                }
-
-                this.draw();
-            },
-
-            jump: function() {
-                if (!this.isJumping && !this.isDucking) {
-                    this.velocityY = this.jumpPower;
-                    this.isJumping = true;
-                }
-            },
-
-            duck: function(isDown) {
-                if (isDown && !this.isJumping) {
-                    if (!this.isDucking) {
-                        this.isDucking = true;
-                        this.height = this.duckHeight; // تقليل الارتفاع
-                        this.y += (this.originalHeight - this.duckHeight); // تعديل الموقع للأسفل فوراً
-                    }
-                } else {
-                     if (this.isDucking) {
-                        this.isDucking = false;
-                        this.y -= (this.originalHeight - this.duckHeight); // استعادة الموقع للأعلى
-                        this.height = this.originalHeight; // استعادة الارتفاع الأصلي
-                     }
-                }
-            }
-        };
-
-        // ضبط موقع اللاعب الابتدائي على الأرض
-        player.y = canvas.height - groundHeight - player.height;
-
-        // --- إدارة العقبات ---
-        let obstacles = [];
-        let spawnTimer = 0;
-
-        function spawnObstacle() {
-            spawnTimer++;
-            // إنشاء عقبة كل 60 إلى 150 إطار تقريباً (بشكل عشوائي)
-            if (spawnTimer > Math.random() * 90 + 60) {
-                spawnTimer = 0;
-
-                // تحديد نوع العقبة عشوائياً: 0 = أرضية، 1 = جوية
-                let type = Math.floor(Math.random() * 2); 
-                
-                let obstacle = {
-                    x: canvas.width,
-                    y: 0,
-                    width: type === 0 ? 30 : 50, // عرض مختلف حسب النوع
-                    height: type === 0 ? 50 : 30, // ارتفاع مختلف حسب النوع
-                    type: type === 0 ? 'low' : 'high',
-                    color: type === 0 ? 'green' : 'red'
-                };
-
-                if (obstacle.type === 'low') {
-                    // عقبة أرضية (مثل صبار)
-                    obstacle.y = canvas.height - groundHeight - obstacle.height;
-                } else {
-                    // عقبة جوية (مثل طائر) - يجب الانحناء تحتها
-                    obstacle.y = canvas.height - groundHeight - player.originalHeight - 10; // فوق رأس اللاعب بقليل
-                }
-                
-                obstacles.push(obstacle);
-            }
-        }
-
-        function handleObstacles() {
-            for (let i = 0; i < obstacles.length; i++) {
-                let obs = obstacles[i];
-                obs.x -= gameSpeed; // تحريك العقبة لليسار
-
-                // رسم العقبة
-                if (obs.type === 'low') {
-                    // إذا كانت لديك صورة للعقبة الأرضية:
-                    // ctx.drawImage(obstacleLowImg, obs.x, obs.y, obs.width, obs.height);
-                    ctx.fillStyle = obs.color; // أخضر
-                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-                } else {
-                    // إذا كانت لديك صورة للعقبة الجوية:
-                    // ctx.drawImage(obstacleHighImg, obs.x, obs.y, obs.width, obs.height);
-                    ctx.fillStyle = obs.color; // أحمر
-                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-                }
-
-                // كشف التصادم (Collision Detection)
-                // معادلة بسيطة للتحقق من تداخل المربعات
-                if (
-                    player.x < obs.x + obs.width &&
-                    player.x + player.width > obs.x &&
-                    player.y < obs.y + obs.height &&
-                    player.y + player.height > obs.y
-                ) {
-                    gameOver();
-                }
-
-                // إزالة العقبات التي خرجت من الشاشة وزيادة النقاط
-                if (obs.x + obs.width < 0) {
-                    obstacles.splice(i, 1);
+            x: 50, y: 300, w: 40, h: 60,
+            dy: 0, jumpForce: 15, gravity: 0.8,
+            grounded: false, ducking: false,
+            update()
