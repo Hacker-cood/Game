@@ -9,16 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* إعدادات الصفحة الأساسية */
         :root {
-            --primary-color: #0075bf; /* لون الأزرار */
-            --footer-bg: #1b4e7a;     /* لون الفوتر الأزرق الغامق */
-            --bg-light: #f9f9f9;
+            --primary-blue: #2c5f8e;
+            --footer-bg: #225c8b;
+            --bg-color: #fbfbfb;
+            --highlight-color: #d1eaff; /* لون الشخبطة الزرقاء */
         }
-        
+
         body {
             font-family: 'IBM Plex Sans Arabic', sans-serif;
-            background-color: var(--bg-light);
+            background-color: var(--bg-color);
             margin: 0;
             padding: 0;
             display: flex;
@@ -26,310 +26,348 @@
             min-height: 100vh;
         }
 
-        /* --- الهيدر (صورتك) --- */
-        header { width: 100%; background: white; border-bottom: 1px solid #eee; }
-        header img { width: 100%; height: auto; display: block; max-width: 100%; }
-
-        /* --- منطقة المحتوى (الوسط) --- */
-        .main-wrapper {
-            flex: 1; /* عشان يمدد الصفحة ويدف الفوتر تحت */
+        /* --- 1. الشريط العلوي الجديد (بديل الصورة) --- */
+        .top-navbar {
+            background-color: white;
+            padding: 15px 40px;
             display: flex;
-            justify-content: center;
-            padding: 40px 20px;
-        }
-
-        .content-box {
-            background: white;
-            width: 100%;
-            max-width: 600px;
-            padding: 0 0 20px 0;
-            text-align: center;
-            /* ما يحتاج حدود لان الخلفية بيضاء */
-        }
-
-        h1.page-title {
-            color: #2c5f8e;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        
-        p.page-subtitle {
-            color: #777;
-            font-size: 15px;
-            margin-bottom: 30px;
-            padding: 0 15px;
-            line-height: 1.6;
-        }
-
-        /* تنسيق الحقول */
-        .form-container {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        .custom-input {
-            width: 100%;
-            padding: 12px 15px;
-            margin-bottom: 15px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            font-size: 16px;
-            font-family: inherit;
-            text-align: right;
-            box-sizing: border-box;
-            background-color: #fff;
-        }
-        
-        .custom-input:focus {
-            border-color: #80bdff;
-            outline: 0;
-            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-        }
-
-        .btn-search {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 18px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-search:hover { background-color: #005c96; }
-
-        /* صفحة النتائج (مخفية) */
-        #resultPage { display: none; text-align: right; padding: 20px; }
-        .result-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-        .result-label { font-weight: bold; color: #333; }
-        .result-value { color: #007bff; font-weight: 500; }
-        .approved-badge {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 5px 15px;
-            border-radius: 20px;
-            display: inline-block;
-            font-weight: bold;
-            margin-bottom: 20px;
-            font-size: 13px;
-        }
-
-        /* --- الفوتر الأزرق (نفس الموقع الأصلي) --- */
-        footer {
-            background-color: var(--footer-bg);
-            color: white;
-            padding: 40px 20px 20px;
-            font-size: 14px;
-        }
-
-        .footer-content {
-            max-width: 1100px;
-            margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            text-align: right;
-            gap: 30px;
-        }
-
-        /* القسم اليمين: الشعار والوصف */
-        .footer-section-about {
-            flex: 1;
-            min-width: 250px;
-        }
-        .footer-logo-img {
-            height: 50px;
-            filter: brightness(0) invert(1); /* يحول الشعار لأبيض */
-            margin-bottom: 15px;
-        }
-        .footer-desc {
-            font-size: 13px;
-            line-height: 1.8;
-            opacity: 0.9;
-            max-width: 300px;
-        }
-
-        /* القسم الوسط: الروابط */
-        .footer-section-links {
-            flex: 1;
-            min-width: 150px;
-        }
-        .footer-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #fff;
-        }
-        .footer-links-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .footer-links-list li {
-            margin-bottom: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 8px;
-        }
-        .footer-links-list a {
-            color: #fff;
-            text-decoration: none;
-            opacity: 0.9;
-            transition: 0.2s;
-        }
-        .footer-links-list a:hover { opacity: 1; padding-right: 5px; }
-
-        /* القسم اليسار: تواصل معنا + الشعارات */
-        .footer-section-contact {
-            flex: 1;
-            min-width: 250px;
-        }
-        .contact-row {
-            display: flex;
+            justify-content: space-between; /* يوزع العناصر يمين ويسار */
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            direction: ltr; /* عشان الأرقام تظهر صح */
-            justify-content: flex-end;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        .contact-row a { color: white; text-decoration: none; font-weight: bold; font-size: 16px;}
-        .work-hours { font-size: 12px; opacity: 0.8; margin-top: 15px; display: block; direction: rtl; }
 
-        /* شعارات الشركاء في الفوتر */
-        .partners-wrapper {
-            margin-top: 25px;
+        /* القائمة اليمين (الرئيسية، الخدمات...) */
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #2c5f8e;
+            font-weight: 500;
+            font-size: 16px;
+            position: relative;
+        }
+        /* تمييز كلمة الرئيسية */
+        .nav-links a.active {
+            font-weight: bold;
+        }
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #4db7c6; /* الخط السماوي تحت الكلمة */
+        }
+
+        /* القائمة اليسار (تسجيل الدخول) */
+        .auth-buttons {
             display: flex;
             gap: 15px;
             align-items: center;
-            justify-content: flex-end; /* لليسار */
         }
-        .partner-img {
-            height: 40px;
-            width: auto;
-            /* الفلتر السحري: يحول الصور لبيضاء ويخفي الخلفيات السوداء */
-            mix-blend-mode: screen; 
-            filter: grayscale(100%) contrast(200%); 
-            opacity: 0.9;
+        .btn-login {
+            text-decoration: none;
+            color: #2c5f8e;
+            font-weight: 500;
         }
-
-        /* الحقوق */
-        .footer-bottom {
-            border-top: 1px solid rgba(255,255,255,0.1);
-            margin-top: 30px;
-            padding-top: 20px;
-            text-align: center;
-            font-size: 12px;
-            opacity: 0.7;
+        .btn-signup {
+            text-decoration: none;
+            background-color: #2c5f8e;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 500;
         }
 
-        /* للتجاوب مع الجوال */
+        /* إخفاء القائمة في الجوال (اختياري، حالياً تظهر عشان تشوفها) */
         @media (max-width: 768px) {
-            .footer-content { flex-direction: column; text-align: center; }
-            .contact-row { justify-content: center; }
-            .partners-wrapper { justify-content: center; }
-            .footer-desc { margin: 0 auto; }
+            .top-navbar { padding: 15px; font-size: 12px; }
+            .nav-links { gap: 10px; }
+            .auth-buttons { display: none; } /* نخفي الأزرار في الجوال الصغير جداً */
         }
+
+
+        /* --- حاوية المحتوى --- */
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin: 40px auto;
+            text-align: center;
+            flex: 1;
+        }
+
+        /* --- 2. العنوان مع الشخبطة الزرقاء --- */
+        h1.title {
+            color: var(--primary-blue);
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+            z-index: 1;
+        }
+        
+        /* الشخبطة الخلفية */
+        .title-bg {
+            position: relative;
+            display: inline-block;
+        }
+        .title-bg::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            height: 12px; /* ارتفاع الشخبطة */
+            background-color: var(--highlight-color);
+            z-index: -1; /* عشان تصير وراء النص */
+            border-radius: 4px;
+        }
+
+        p.subtitle {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* الحقول */
+        .form-group { margin-bottom: 20px; text-align: right; }
+        .form-label { display: block; margin-bottom: 8px; color: #555; font-size: 14px; display:none;} /* مخفي للتصميم النظيف */
+        
+        .form-input {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            background-color: #fff;
+            font-family: inherit;
+            font-size: 16px;
+            text-align: right;
+            box-sizing: border-box;
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .form-input::placeholder { text-align: right; color: #aaa; }
+        .form-input:focus { border-color: var(--primary-blue); }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background-color: #2680eb; /* لون الزر الأزرق الفاتح */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        .btn-submit:hover { background-color: #1a6ac9; }
+
+
+        /* --- الفوتر --- */
+        footer {
+            background-color: var(--footer-bg);
+            color: white;
+            padding: 50px 40px 30px 40px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer-logo-main {
+            width: 100px;
+            margin-bottom: 20px;
+            filter: brightness(0) invert(1);
+        }
+
+        .footer-menu-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: inline-block;
+            border-bottom: 3px solid #6ba4d6;
+            padding-bottom: 10px;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 50px 0;
+        }
+        .footer-links li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 16px;
+        }
+
+        /* --- 3. الشعارات في الفوتر (يمين ويسار) --- */
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            text-align: right;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            padding-top: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        /* اليمين: معلومات التواصل + شعار الوزارة */
+        .right-section { flex: 1; min-width: 250px; }
+        
+        .contact-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-bottom: 10px; direction: ltr; font-size: 16px;}
+        .work-hours { font-size: 13px; opacity: 0.8; margin-top: 15px; display: block; direction: rtl; }
+
+        /* اليسار: شعارات الشركاء */
+        .logos-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .partner-logo {
+            height: 45px;
+            width: auto;
+            mix-blend-mode: screen; 
+            filter: grayscale(100%) contrast(150%);
+        }
+        
+        /* شعار سيفين ونخلة */
+        .saudi-logo {
+            height: 55px; /* أكبر شوي */
+        }
+
+        .copyright {
+            margin-top: 50px;
+            font-size: 12px;
+            opacity: 0.6;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+        }
+
+        /* صفحة النتائج */
+        #resultPage { display: none; }
+        .result-box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: right;}
+        .result-row { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; padding: 12px 0; }
+        .result-row:last-child { border-bottom: none; }
+        .res-label { font-weight: bold; color: #333; }
+        .res-val { color: var(--primary-blue); font-weight: 500; }
     </style>
 </head>
 <body>
 
-    <header>
-        <img src="header.jpg.jpg" alt="Seha Header">
+    <header class="top-navbar">
+        <div class="nav-links">
+            <a href="#" class="active">الرئيسية</a>
+            <a href="#">الخدمات</a>
+            <a href="#">الاستعلامات</a>
+            <a href="#">الأسئلة الشائعة</a>
+            <a href="#">تواصل معنا</a>
+        </div>
+
+        <div class="auth-buttons">
+            <a href="#" class="btn-signup">إنشاء حساب</a>
+            <a href="#" class="btn-login">تسجيل الدخول</a>
+        </div>
     </header>
 
-    <div class="main-wrapper">
-        <div class="content-box" id="searchSection">
-            <h1 class="page-title">الإجازات المرضية</h1>
-            <p class="page-subtitle">خدمة الاستعلام عن الإجازات المرضية تتيح لك الاستعلام عن حالة طلبك للإجازة ويمكنك طباعتها عن طريق تطبيق صحتي</p>
+    <div class="container" id="searchPage">
+        
+        <h1 class="title">
+            <span class="title-bg">الإجازات المرضية</span>
+        </h1>
+        
+        <p class="subtitle">خدمة الاستعلام عن الإجازات المرضية تتيح لك الاستعلام عن حالة طلبك للإجازة ويمكنك طباعتها عن طريق تطبيق صحتي</p>
 
-            <div class="form-container">
-                <input type="text" id="serviceCode" class="custom-input" placeholder="رمز الخدمة">
-                <input type="text" id="idNumber" class="custom-input" placeholder="رقم الهوية / الإقامة">
-                <button class="btn-search" onclick="checkInfo()">استعلام</button>
-                <p id="errorBox" style="color:red; display:none; margin-top:10px; font-size:14px;">عفواً، البيانات غير صحيحة</p>
-            </div>
+        <div class="form-group">
+            <input type="text" id="serviceCode" class="form-input" placeholder="رمز الخدمة">
+        </div>
+        <div class="form-group">
+            <input type="text" id="idNumber" class="form-input" placeholder="رقم الهوية / الإقامة">
         </div>
 
-        <div class="content-box" id="resultPage">
-            <div style="text-align: center;"><span class="approved-badge">تقرير معتمد</span></div>
-            
-            <div class="result-row"><span class="result-value">علي محمد مانع ال صنبوح</span><span class="result-label">الاسم:</span></div>
-            <div class="result-row"><span class="result-value" style="color:#555">2026-02-23</span><span class="result-label">تاريخ الإصدار:</span></div>
-            <div class="result-row"><span class="result-value" style="color:#555">2026-02-23</span><span class="result-label">تبدأ من:</span></div>
-            <div class="result-row"><span class="result-value" style="color:#555">2026-02-23</span><span class="result-label">وحتى:</span></div>
-            <div class="result-row"><span class="result-value" style="color:#555">1</span><span class="result-label">المدة بالأيام:</span></div>
-            <div class="result-row"><span class="result-value">مالك حسن مصري</span><span class="result-label">اسم الطبيب:</span></div>
-            <div class="result-row"><span class="result-value" style="color:#555">طبيب عام</span><span class="result-label">المسمى الوظيفي:</span></div>
+        <button class="btn-submit" onclick="checkInfo()">استعلام</button>
+        <p id="errorBox" style="color:red; display:none; margin-top:10px;">البيانات غير صحيحة</p>
+    </div>
 
-            <button class="btn-search" onclick="location.reload()" style="background:#6c757d; margin-top:20px;">رجوع</button>
+    <div class="container" id="resultPage">
+        <div style="text-align: center; margin-bottom: 20px;">
+             <span style="background:#e8f5e9; color:#2e7d32; padding:5px 20px; border-radius:20px; font-weight:bold;">تقرير معتمد</span>
         </div>
+
+        <div class="result-box">
+            <div class="result-row"><span class="res-val">علي محمد مانع ال صنبوح</span> <span class="res-label">الاسم</span></div>
+            <div class="result-row"><span class="res-val">2026-02-23</span> <span class="res-label">تاريخ الإصدار</span></div>
+            <div class="result-row"><span class="res-val">2026-02-23</span> <span class="res-label">تاريخ البداية</span></div>
+            <div class="result-row"><span class="res-val">2026-02-23</span> <span class="res-label">تاريخ النهاية</span></div>
+            <div class="result-row"><span class="res-val">1 يوم</span> <span class="res-label">المدة</span></div>
+            <div class="result-row"><span class="res-val">مالك حسن مصري</span> <span class="res-label">اسم الطبيب</span></div>
+            <div class="result-row"><span class="res-val">طبيب عام</span> <span class="res-label">التخصص</span></div>
+        </div>
+        
+        <button class="btn-submit" onclick="location.reload()" style="background:#888; margin-top:20px;">رجوع للاستعلامات</button>
     </div>
 
     <footer>
-        <div class="footer-content">
+        <div class="footer-bottom">
             
-            <div class="footer-section-about">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Seha_Logo.svg/1200px-Seha_Logo.svg.png" class="footer-logo-img" alt="Seha Logo">
-                <p class="footer-desc">منصة صحة تخدم جميع المنشآت الطبية من خلال تقديم الخدمات الصحية إلكترونياً لجميع المنشآت الطبية وتسعى إلى توحيد وأتمتة الاجراءات والخدمات.</p>
-            </div>
-
-            <div class="footer-section-links">
-                <div class="footer-title">القائمة الرئيسية</div>
-                <ul class="footer-links-list">
-                    <li><a href="#">الخدمات</a></li>
-                    <li><a href="#">الاستعلامات</a></li>
-                    <li><a href="#">الأسئلة الشائعة</a></li>
-                    <li><a href="#">تواصل معنا</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-section-contact">
-                <div class="footer-title">تواصل معنا</div>
-                <div class="contact-row"><a href="#">920002005</a> 📞</div>
-                <div class="contact-row"><a href="#">support@seha.sa</a> ✉️</div>
+            <div class="right-section">
+                <div class="footer-menu-title" style="border:none;">تواصل معنا</div>
+                <div class="contact-row"><span>920002005</span> 📞</div>
+                <div class="contact-row"><span>support@seha.sa</span> ✉️</div>
+                <div class="contact-row"><span>920002005</span> 💬</div>
                 <span class="work-hours">أوقات العمل: الأحد حتى الخميس 8 ص - 11 م</span>
-
-                <div class="partners-wrapper">
-                    <img src="moh.jpg" class="partner-img" alt="وزارة الصحة">
-                    <span style="color:rgba(255,255,255,0.2); font-size:20px;">|</span>
-                    <img src="lean.jpg" class="partner-img" alt="لين">
-                    </div>
+                
+                <div style="margin-top: 20px; text-align: right;">
+                     <img src="moh.jpg" class="partner-logo saudi-logo" alt="وزارة الصحة">
+                </div>
             </div>
+
+            <div class="left-section">
+                <div class="footer-logo-main">
+                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Seha_Logo.svg/1200px-Seha_Logo.svg.png" style="width:100%; filter: brightness(0) invert(1);">
+                </div>
+                
+                <div class="logos-section">
+                    <img src="lean.jpg" class="partner-logo" alt="لين">
+                    <span style="color:rgba(255,255,255,0.2); font-size: 24px;">|</span>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Seha_Logo.svg/1200px-Seha_Logo.svg.png" class="partner-logo" style="height: 30px;">
+                </div>
+            </div>
+
         </div>
 
-        <div class="footer-bottom">
-            &copy; 2026 منصة صحة معتمدة من قبل وزارة الصحة | سياسة الخصوصية وشروط الإستخدام
+        <div class="copyright">
+            &copy; 2026 منصة صحة معتمدة من قبل وزارة الصحة<br>
+            سياسة الخصوصية وشروط الإستخدام | دليل الاستخدام
         </div>
     </footer>
 
     <script>
         function checkInfo() {
-            // بيانات التحقق
             const correctCode = "GSL26022330058";
             const correctID = "1152716864";
-            
-            const codeIn = document.getElementById('serviceCode').value.trim();
-            const idIn = document.getElementById('idNumber').value.trim();
-            
-            if (codeIn === correctCode && idIn === correctID) {
-                document.getElementById('searchSection').style.display = 'none';
+            if (document.getElementById('serviceCode').value.trim() === correctCode && document.getElementById('idNumber').value.trim() === correctID) {
+                document.getElementById('searchPage').style.display = 'none';
                 document.getElementById('resultPage').style.display = 'block';
-                // رفع الشاشة للأعلى
                 window.scrollTo(0, 0);
             } else {
                 document.getElementById('errorBox').style.display = 'block';
             }
         }
     </script>
-
 </body>
-</html>v
+</html>
